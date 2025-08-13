@@ -1,0 +1,52 @@
+* {
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+html,
+body {
+    height: 100%;
+}
+
+body {
+    background-color: #f1f3f6;
+    font-size: 1.25rem;
+    color: #34495e;
+}
+
+h1 {
+    width: 100%;
+    text-align: center;
+}
+
+a {
+    color: inherit;
+}
+
+nav {
+    background-color: white;
+    padding: 1rem 5rem;
+}
+
+main {
+    padding: 1rem 5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    height: calc(100% - 10rem);
+}
+
+footer {
+    background-color: white;
+    text-align: center;
+    padding: 1rem 5rem;
+}
+
+footer a {
+    color: green;
+}
+
+a {
+    text-decoration: none;
+}
