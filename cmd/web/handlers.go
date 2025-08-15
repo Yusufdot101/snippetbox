@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/Yusufdot101/snippetbox/internal/models"
+	"github.com/Yusufdot101/snippetbox/internal/validator"
 	"github.com/julienschmidt/httprouter"
 )
 
@@ -55,22 +57,58 @@ func (app *application) viewSnippet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) createSnippet(w http.ResponseWriter, r *http.Request) {
-	WriteJSON(w, http.StatusOK, apiSuccess{Result: "Create snippet"})
-	return
+	data := app.newTemplateData(r)
+
+	data.Form = snippetCreateForm{
+		Expires: 365,
+	}
+
+	page := "create.tmpl.html"
+	app.render(w, http.StatusOK, page, data)
+}
+
+type snippetCreateForm struct {
+	Title               string `form:"title"`
+	Content             string `form:"content"`
+	Expires             int    `form:"expires"`
+	validator.Validator `form:"-"`
 }
 
 func (app *application) createSnippetPost(w http.ResponseWriter, r *http.Request) {
-	title := "first snippet"
-	content := "first snippet content"
-	expires := 7
+	err := r.ParseForm()
+	if err != nil {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
 
-	id, err := app.snippets.Insert(title, content, expires)
+	var form snippetCreateForm
+
+	err = app.formDecoder.Decode(&form, r.PostForm)
+	if err != nil {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	permittedExpiresValues := []string{"1", "7", "365"}
+	form.CheckField(validator.NotBlank(form.Title), "title", "This field cannot be blank")
+	form.CheckField(validator.MaxChars(form.Title, 100), "title", "This cannot be more than 100 characters long")
+	form.CheckField(validator.NotBlank(form.Content), "content", "This field cannot be blank")
+	form.CheckField(validator.PremittedInt(form.Expires, permittedExpiresValues...), "expires", "This field must be in ["+strings.Join(permittedExpiresValues, ", ")+"]")
+
+	if !form.Valid() {
+		data := app.newTemplateData(r)
+		data.Form = form
+		page := "create.tmpl.html"
+		app.render(w, http.StatusBadRequest, page, data)
+		return
+	}
+
+	id, err := app.snippets.Insert(form.Title, form.Content, form.Expires)
 	if err != nil {
 		app.serverError(w, err)
 		return
 	}
-	WriteJSON(w, http.StatusCreated, apiSuccess{Result: "snippet: " + strconv.Itoa(id) + " created"})
-	http.Redirect(w, r, fmt.Sprintf("/snippets/view?id=%d", id), http.StatusSeeOther)
+	http.Redirect(w, r, fmt.Sprintf("/snippets/view/%d", id), http.StatusSeeOther)
 }
 
 type apiError struct {
