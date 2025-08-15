@@ -6,24 +6,26 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"text/template"
 
 	"github.com/Yusufdot101/snippetbox/internal/models"
 	_ "github.com/go-sql-driver/mysql"
 )
 
 type application struct {
-	errorLog *log.Logger
-	infoLog  *log.Logger
-	snippets *models.SnippetModel
+	errorLog      *log.Logger
+	infoLog       *log.Logger
+	snippets      *models.SnippetModel
+	templateCache map[string]*template.Template
 }
 
 func main() {
-	// the dafult port if the addr flag is not set
+	// the default values for the flags if not set on run time
 	defaultPort := ":4000"
 	defaultDSN := "web:REMOVED_PASSWORD@/snippetbox?parseTime=true"
-	// a cammmand line flag named "addr", with default value defaultPort
+	// a cammmand line flag named addr or dsn, with default value
 	// short text explaining what the flag controls
-	// store in addr variable
+	// store in appropriate variable
 	addr := flag.String("addr", defaultPort, "HTTP newtwork address")
 	dsn := flag.String("dsn", defaultDSN, "MySQL data source name")
 	flag.Parse()
@@ -38,10 +40,16 @@ func main() {
 
 	defer db.Close()
 
+	templateCache, err := newTemplateCache()
+	if err != nil {
+		errorLog.Fatal(err)
+	}
+
 	app := &application{
-		errorLog: errorLog,
-		infoLog:  infoLog,
-		snippets: &models.SnippetModel{DB: db},
+		errorLog:      errorLog,
+		infoLog:       infoLog,
+		snippets:      &models.SnippetModel{DB: db},
+		templateCache: templateCache,
 	}
 
 	// initialize a new http.Server struct. we set the Addr and Handler fields so
