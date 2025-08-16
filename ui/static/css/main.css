@@ -169,6 +169,7 @@ nav {
     padding-top: 17px;
     padding-bottom: 15px;
     padding-left: 1rem;
+    padding-right: 1rem;
     background: #f7f9fa;
     height: 60px;
     color: #6a6c6f;
@@ -187,7 +188,7 @@ nav form button {
     top: 3px;
 }
 
-nav a[href^="/user/"],
+nav a[href^="/users/"],
 nav form button {
     float: right;
     margin-left: 1.5em;

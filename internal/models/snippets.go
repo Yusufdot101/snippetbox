@@ -2,7 +2,6 @@ package models
 
 import (
 	"database/sql"
-	"errors"
 	"time"
 )
 
@@ -45,10 +44,10 @@ func (model *SnippetModel) Get(id int) (*Snippet, error) {
 
 	snippet, err := scanRowIntoSnippet(row)
 	if err != nil {
-		if errors.Is(err, ErrNoRecord) {
-			return nil, ErrNoRecord
-		}
-		return nil, err
+		// if errors.Is(err, ErrNoRecord) {
+		// 	return nil, ErrNoRecord
+		// }
+		return nil, ErrNoRecord
 	}
 	return snippet, nil
 }
